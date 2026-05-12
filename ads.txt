@@ -1,0 +1,4 @@
+# Replace the placeholder publisher ID before launch.
+# Format: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+# Example:
+# google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0
