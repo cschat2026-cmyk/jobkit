@@ -1,5 +1,5 @@
-const ADSENSE_ENABLED = false;
-const ADSENSE_CLIENT = "ca-pub-0000000000000000";
+const ADSENSE_ENABLED = true;
+const ADSENSE_CLIENT = "ca-pub-2456404542897668";
 const CONTACT_EMAIL = "cschat2026@gmail.com";
 
 const ADSENSE_SLOT_MAP = {
@@ -174,6 +174,23 @@ const SUPPLY_TEMPLATES = {
 function loadAdSenseScript() {
   if (!ADSENSE_ENABLED || !ADSENSE_CLIENT.startsWith("ca-pub-")) {
     return Promise.resolve(false);
+  }
+
+  const existingScript = document.querySelector(
+    `script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"][src*="${ADSENSE_CLIENT}"]`
+  );
+
+  if (existingScript) {
+    if (window.adsbygoogle) {
+      return Promise.resolve(true);
+    }
+
+    return new Promise((resolve, reject) => {
+      existingScript.addEventListener("load", () => resolve(true), { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Failed to load AdSense script.")), {
+        once: true
+      });
+    });
   }
 
   if (document.querySelector('script[data-adsense-loader="true"]')) {
