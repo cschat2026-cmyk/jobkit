@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://servicequotehq.com/sitemap.xml
+Sitemap: https://jobkit20.top/sitemap.xml
