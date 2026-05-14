@@ -3,10 +3,10 @@ const ADSENSE_CLIENT = "ca-pub-2456404542897668";
 const CONTACT_EMAIL = "cschat2026@gmail.com";
 
 const ADSENSE_SLOT_MAP = {
-  leaderboard: "1000000001",
-  sidebar: "1000000002",
-  inline: "1000000003",
-  footer: "1000000004"
+  leaderboard: "",
+  sidebar: "",
+  inline: "",
+  footer: ""
 };
 
 const PROFILE_STORAGE_KEY = "sqhq_profiles_v2";
@@ -218,6 +218,13 @@ function hydrateAdSlots() {
 
   if (!ADSENSE_ENABLED) {
     document.documentElement.dataset.adsense = "disabled";
+    return;
+  }
+
+  const hasManualSlots = Object.values(ADSENSE_SLOT_MAP).some((slotId) => /^\d{8,}$/.test(slotId));
+
+  if (!hasManualSlots) {
+    document.documentElement.dataset.adsense = "pending";
     return;
   }
 

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1500" viewBox="0 0 1000 1500" role="img" aria-label="House cleaning price list Pinterest cover">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e7faf7" />
+      <stop offset="52%" stop-color="#8fd8cf" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="1500" fill="url(#bg)" />
+  <rect x="72" y="72" width="856" height="1356" rx="42" fill="#f8fffe" opacity="0.95" />
+  <rect x="128" y="118" width="250" height="54" rx="27" fill="#0f4c5c" />
+  <text x="253" y="152" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#ffffff">CLEANING RATES</text>
+  <text x="128" y="302" font-family="Arial, Helvetica, sans-serif" font-size="90" font-weight="800" fill="#172033">HOUSE</text>
+  <text x="128" y="400" font-family="Arial, Helvetica, sans-serif" font-size="90" font-weight="800" fill="#172033">CLEANING</text>
+  <text x="128" y="498" font-family="Arial, Helvetica, sans-serif" font-size="90" font-weight="800" fill="#172033">PRICE LIST</text>
+  <text x="128" y="586" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="600" fill="#4a5568">Recurring, deep clean, add-ons, and minimum charge logic</text>
+  <rect x="128" y="652" width="744" height="410" rx="34" fill="#ffffff" stroke="#bfe7e2" stroke-width="4" />
+  <text x="172" y="738" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#172033">Use it to explain</text>
+  <text x="172" y="812" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#243041">Why first-time cleans cost more</text>
+  <text x="172" y="876" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#243041">How recurring pricing works</text>
+  <text x="172" y="940" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#243041">Which add-ons raise the final quote</text>
+  <rect x="128" y="1114" width="392" height="88" rx="44" fill="#172033" />
+  <text x="324" y="1170" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#ffffff">CLIENT-FRIENDLY</text>
+  <text x="128" y="1288" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#4a5568">jobkit20.top/guides/house-cleaning-price-list/</text>
+  <text x="128" y="1342" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="#7b8794">A simple structure for cleaning companies that want clearer quotes.</text>
+</svg>

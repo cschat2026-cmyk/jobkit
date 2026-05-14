@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1500" viewBox="0 0 1000 1500" role="img" aria-label="Pressure washing pricing guide Pinterest cover">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dbeafe" />
+      <stop offset="50%" stop-color="#7fb4f0" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="1500" fill="url(#bg)" />
+  <rect x="72" y="72" width="856" height="1356" rx="42" fill="#f8fbff" opacity="0.95" />
+  <rect x="128" y="118" width="280" height="54" rx="27" fill="#1e3a8a" />
+  <text x="268" y="152" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#ffffff">PRESSURE WASHING</text>
+  <text x="128" y="302" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="800" fill="#172033">PRICING</text>
+  <text x="128" y="400" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="800" fill="#172033">GUIDE FOR</text>
+  <text x="128" y="498" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="800" fill="#172033">SMALL JOBS</text>
+  <text x="128" y="586" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="600" fill="#4a5568">Minimum charges, surface type, and upsell structure</text>
+  <rect x="128" y="652" width="744" height="410" rx="34" fill="#ffffff" stroke="#bed5fb" stroke-width="4" />
+  <text x="172" y="738" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#172033">Price with 3 layers</text>
+  <text x="172" y="812" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#243041">1. Minimum trip charge</text>
+  <text x="172" y="876" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#243041">2. Surface-specific rate</text>
+  <text x="172" y="940" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#243041">3. Complexity adjustments</text>
+  <rect x="128" y="1114" width="344" height="88" rx="44" fill="#172033" />
+  <text x="300" y="1170" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#ffffff">FREE GUIDE</text>
+  <text x="128" y="1288" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#4a5568">jobkit20.top/guides/pressure-washing-pricing/</text>
+  <text x="128" y="1342" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="#7b8794">Helpful for driveways, patios, siding, and route-based quoting.</text>
+</svg>
