@@ -351,6 +351,22 @@ document.querySelectorAll("[data-contact-trigger]").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-load-example-trigger]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const toolSection = document.getElementById("quote-workbench");
+    if (toolSection) {
+      toolSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    const loadButton = document.getElementById("load-example");
+    if (loadButton) {
+      window.setTimeout(() => {
+        loadButton.click();
+      }, 160);
+    }
+  });
+});
+
 function safeNumber(value) {
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -425,7 +441,7 @@ function loadProcurementState() {
   try {
     return JSON.parse(localStorage.getItem(PROCUREMENT_STORAGE_KEY) || "[]");
   } catch (error) {
-    console.error("Failed to load saved procurement bundles:", error);
+    console.error("Failed to load saved material notes:", error);
     return [];
   }
 }
@@ -461,6 +477,8 @@ function initializeQuoteWorkbench() {
     minimumCharge: document.getElementById("minimum-charge"),
     customerScope: document.getElementById("customer-scope"),
     notes: document.getElementById("quote-notes"),
+    suggestedScopePreview: document.getElementById("suggested-scope-preview"),
+    useSuggestedScopeButton: document.getElementById("use-suggested-scope"),
     status: document.getElementById("tool-status"),
     profileSummary: document.getElementById("profile-summary"),
     directCost: document.getElementById("direct-cost"),
@@ -472,12 +490,18 @@ function initializeQuoteWorkbench() {
     historyEmpty: document.getElementById("saved-quote-empty"),
     loadExampleButton: document.getElementById("load-example"),
     loadExampleMobileButton: document.getElementById("load-example-mobile"),
+    copyClientSheetMobileButton: document.getElementById("copy-client-sheet-mobile"),
     saveProfileButton: document.getElementById("save-profile"),
     saveQuoteButton: document.getElementById("save-quote"),
     saveQuoteMobileButton: document.getElementById("save-quote-mobile"),
     resetButton: document.getElementById("reset-workbench"),
     clearHistoryButton: document.getElementById("clear-history"),
     serviceShortcuts: Array.from(document.querySelectorAll("[data-service-shortcut]")),
+    progressChips: {
+      service: document.querySelector('[data-progress-step="service"]'),
+      costs: document.querySelector('[data-progress-step="costs"]'),
+      client: document.querySelector('[data-progress-step="client"]')
+    },
     quoteSummary: document.getElementById("quote-summary"),
     copySummaryButton: document.getElementById("copy-summary"),
     emailSummaryButton: document.getElementById("email-summary"),
@@ -497,7 +521,21 @@ function initializeQuoteWorkbench() {
     clientSheetPreview: document.getElementById("client-sheet-preview"),
     copyClientSheetButton: document.getElementById("copy-client-sheet"),
     emailClientSheetButton: document.getElementById("email-client-sheet"),
-    printClientSheetButton: document.getElementById("print-client-sheet")
+    printClientSheetButton: document.getElementById("print-client-sheet"),
+    resultGuidance: document.getElementById("result-guidance"),
+    copyClientSheetPrimaryButton: document.getElementById("copy-client-sheet-primary"),
+    saveQuoteResultButton: document.getElementById("save-quote-result"),
+    quoteContextBar: document.getElementById("quote-context-bar"),
+    quoteHealth: document.getElementById("quote-health"),
+    quoteSendReadiness: document.getElementById("quote-send-readiness"),
+    quoteSendHelper: document.getElementById("quote-send-helper"),
+    quoteSendBadge: document.getElementById("quote-send-badge"),
+    quoteFixList: document.getElementById("quote-fix-list"),
+    quoteBreakdownGrid: document.getElementById("quote-breakdown-grid"),
+    quoteBreakdownNote: document.getElementById("quote-breakdown-note"),
+    quoteNextAction: document.getElementById("quote-next-action"),
+    quoteNextActionTitle: document.getElementById("quote-next-action-title"),
+    quoteNextActionCopy: document.getElementById("quote-next-action-copy")
   };
 
   function setStatus(message) {
@@ -511,6 +549,26 @@ function initializeQuoteWorkbench() {
       const isActive = button.dataset.serviceShortcut === activeService;
       button.classList.toggle("active", isActive);
       button.setAttribute("aria-pressed", String(isActive));
+    });
+  }
+
+  function updateProgressChips(state) {
+    const serviceReady = Boolean(state.serviceType);
+    const costsReady = state.hours > 0 || state.materials > 0 || state.travelFee > 0 || state.addOns > 0;
+    const clientReady = Boolean(state.customerScope);
+
+    Object.entries(elements.progressChips).forEach(([key, chip]) => {
+      if (!chip) {
+        return;
+      }
+
+      const isActive =
+        (key === "service" && serviceReady) ||
+        (key === "costs" && costsReady) ||
+        (key === "client" && clientReady);
+
+      chip.classList.toggle("active", isActive);
+      chip.setAttribute("aria-pressed", String(isActive));
     });
   }
 
@@ -531,6 +589,7 @@ function initializeQuoteWorkbench() {
       elements.hours.value = "";
       elements.materials.value = "";
       elements.addOns.value = "";
+      elements.customerScope.value = "";
       elements.notes.value = "";
     }
 
@@ -554,6 +613,228 @@ function initializeQuoteWorkbench() {
       <span>${selectedProfile.profitPct}% target profit</span>
       <span>${formatCurrency(selectedProfile.minimumCharge)} minimum charge</span>
     `;
+  }
+
+  function renderQuoteContext(state) {
+    if (!elements.quoteContextBar) {
+      return;
+    }
+
+    const serviceLabel = DEFAULT_TOOL_PROFILES[state.serviceType]?.label || "Service";
+    const jobLabel = state.jobName || "Untitled job";
+    const scopeLabel = state.customerScope
+      ? "Client-ready scope added"
+      : "Client-ready scope not added yet";
+
+    elements.quoteContextBar.textContent = `${serviceLabel} | ${jobLabel} | ${scopeLabel}`;
+  }
+
+  function renderQuoteHealth(result) {
+    if (!elements.quoteHealth) {
+      return;
+    }
+
+    const materialShare = result.recommendedQuote > 0 ? (result.materials / result.recommendedQuote) * 100 : 0;
+    const addOnShare = result.recommendedQuote > 0 ? (result.addOns / result.recommendedQuote) * 100 : 0;
+    const issues = [];
+
+    if (!result.hours || result.laborHours <= 0) {
+      issues.push("add labor hours before sending this quote");
+    }
+
+    if (!result.customerScope) {
+      issues.push("add a customer-facing scope so the client knows what is included");
+    }
+
+    if (result.materials <= 0 && result.serviceType !== "lawn") {
+      issues.push("check whether materials or consumables should be included");
+    }
+
+    if (materialShare > 35) {
+      issues.push("materials are a large share of the quote, so verify supplier pricing");
+    }
+
+    if (addOnShare > 25) {
+      issues.push("extras are a large share of the quote, so name them clearly in the scope");
+    }
+
+    if (result.minimumApplied && result.laborHours > 0) {
+      issues.push("minimum charge is controlling the price, which is normal for small jobs but worth reviewing");
+    }
+
+    let health = "good";
+    let message = "This quote has the basics covered. Review the client version, then copy or save it when the scope is correct.";
+
+    if (!result.hours && !result.materials && !result.addOns) {
+      health = "neutral";
+      message = "Add hours and core costs to see whether this quote is ready to send.";
+    } else if (issues.length >= 3) {
+      health = "risk";
+      message = `Before sending: ${issues.slice(0, 3).join("; ")}.`;
+    } else if (issues.length) {
+      health = "warning";
+      message = `Quick check: ${issues.join("; ")}.`;
+    }
+
+    elements.quoteHealth.dataset.health = health;
+    elements.quoteHealth.innerHTML = `
+      <strong>Quote health check</strong>
+      <p>${message}</p>
+    `;
+
+    if (elements.quoteSendReadiness && elements.quoteSendHelper && elements.quoteSendBadge && elements.quoteFixList) {
+      let readiness = "ready";
+      let readinessTitle = "Ready to send";
+      let readinessHelper = "This quote has enough detail for a clean client copy. Do one final read, then copy or send it.";
+      let fixItems = [];
+
+      if (!result.hours && !result.materials && !result.addOns) {
+        readiness = "draft";
+        readinessTitle = "Still building";
+        readinessHelper = "You do not have enough job detail yet. Start with labor hours and the main cost inputs.";
+        fixItems = ["Add labor hours.", "Add core costs such as materials, travel, or extras.", "Review the recommended quote again after the numbers update."];
+      } else if (issues.length) {
+        readiness = "review";
+        readinessTitle = "Needs review";
+        readinessHelper = "This quote is close, but a few details should be tightened before it goes to a customer.";
+        fixItems = issues.map((issue) => issue.charAt(0).toUpperCase() + issue.slice(1) + ".");
+      } else {
+        fixItems = ["Read the client-ready version once.", "Confirm the scope language matches the actual job.", "Copy, email, or save the quote."];
+      }
+
+      elements.quoteSendReadiness.textContent = readinessTitle;
+      elements.quoteSendHelper.textContent = readinessHelper;
+      elements.quoteSendBadge.dataset.readiness = readiness;
+      elements.quoteSendBadge.textContent = readiness === "ready" ? "Ready" : readiness === "review" ? "Review" : "Draft";
+      elements.quoteFixList.innerHTML = fixItems.map((item) => `<li>${item}</li>`).join("");
+    }
+  }
+
+  function renderQuoteBreakdown(result) {
+    if (!elements.quoteBreakdownGrid || !elements.quoteBreakdownNote) {
+      return;
+    }
+
+    const lines = [
+      {
+        label: "Labor cost",
+        value: result.laborCost,
+        detail:
+          result.laborHours > 0
+            ? `${result.crewSize || 0} people x ${result.hours || 0} hours at ${formatCurrency(result.laborRate)}/person hr`
+            : "Add labor hours to see the labor share."
+      },
+      {
+        label: "Materials",
+        value: result.materials,
+        detail: result.materials > 0 ? "Supplies and consumables entered for this job." : "No materials cost entered yet."
+      },
+      {
+        label: "Travel and setup",
+        value: result.travelFee,
+        detail: result.travelFee > 0 ? "Fuel, drive, parking, or setup cost included." : "No travel or setup fee entered."
+      },
+      {
+        label: "Extras",
+        value: result.addOns,
+        detail: result.addOns > 0 ? "Upsells or extra scope included in the quote." : "No add-ons or extras entered."
+      },
+      {
+        label: "Overhead",
+        value: result.overheadAmount,
+        detail: `${result.overheadPct}% overhead applied to direct cost.`
+      }
+    ];
+
+    const biggestLine = lines.reduce((current, line) => (line.value > current.value ? line : current), lines[0]);
+    const totalVisible = lines.reduce((sum, line) => sum + line.value, 0);
+    const divisor = totalVisible > 0 ? totalVisible : 1;
+
+    elements.quoteBreakdownGrid.innerHTML = lines
+      .filter((line) => totalVisible > 0 || line.label === "Labor cost")
+      .map((line) => {
+        const share = totalVisible > 0 ? Math.max(4, Math.round((line.value / divisor) * 100)) : 0;
+        return `
+          <article class="quote-breakdown-item">
+            <div class="quote-breakdown-head">
+              <strong>${line.label}</strong>
+              <span>${formatCurrency(line.value)}</span>
+            </div>
+            <div class="quote-breakdown-bar"><span style="width: ${share}%"></span></div>
+            <p>${line.detail}</p>
+          </article>
+        `;
+      })
+      .join("");
+
+    elements.quoteBreakdownNote.textContent =
+      totalVisible > 0
+        ? `${biggestLine.label} is currently the biggest driver of this quote. Review it first if the final price feels too high or too low.`
+        : "Add hours and costs to see which parts of the job are pushing the price most.";
+  }
+
+  function renderNextAction(result) {
+    if (!elements.quoteNextAction || !elements.quoteNextActionTitle || !elements.quoteNextActionCopy) {
+      return;
+    }
+
+    let tone = "good";
+    let title = "Best next move";
+    let copy = "Review the client version once, then copy, email, or save the quote.";
+
+    if (!result.hours && !result.materials && !result.travelFee && !result.addOns) {
+      tone = "risk";
+      copy = "Add labor hours and at least one core cost input first. That will turn this from a draft into a usable quote.";
+    } else if (!result.customerScope) {
+      tone = "warning";
+      copy = "Add or insert a customer-facing scope next. It makes the client-ready version much easier to send.";
+    } else if (result.materials <= 0 && result.serviceType !== "lawn") {
+      tone = "warning";
+      copy = "Review materials next. A missing materials line is a common reason service quotes feel profitable on paper but not in real work.";
+    } else if (result.minimumApplied) {
+      tone = "warning";
+      copy = "Check whether the minimum charge still feels right for this job. It is currently setting the final price.";
+    }
+
+    elements.quoteNextAction.dataset.tone = tone;
+    elements.quoteNextActionTitle.textContent = title;
+    elements.quoteNextActionCopy.textContent = copy;
+  }
+
+  function buildSuggestedScope(result) {
+    const serviceLabel = DEFAULT_TOOL_PROFILES[result.serviceType]?.label || "Service";
+    const lines = [];
+
+    lines.push(`${serviceLabel} service for ${result.jobName || "the listed project"}.`);
+
+    if (result.area) {
+      lines.push(`Approximate service area: ${result.area}.`);
+    }
+
+    if (result.serviceType === "painting") {
+      lines.push("Includes standard prep, surface protection, application, and cleanup.");
+    } else if (result.serviceType === "cleaning") {
+      lines.push("Includes the agreed cleaning tasks, standard supplies, and final tidy-up.");
+    } else if (result.serviceType === "pressure") {
+      lines.push("Includes setup, washing, standard treatment, and site cleanup.");
+    } else if (result.serviceType === "lawn") {
+      lines.push("Includes the scheduled lawn service, detail work, and cleanup of the work area.");
+    }
+
+    if (result.addOns > 0) {
+      lines.push("Also includes approved add-on or extra-scope work listed in this quote.");
+    }
+
+    lines.push("Final scope can be adjusted if site conditions or requested work change before the job starts.");
+    return lines.join(" ");
+  }
+
+  function renderSuggestedScope(result) {
+    if (!elements.suggestedScopePreview) {
+      return;
+    }
+
+    elements.suggestedScopePreview.textContent = buildSuggestedScope(result);
   }
 
   function collectFormState() {
@@ -596,6 +877,22 @@ function initializeQuoteWorkbench() {
       ? `Minimum charge applied at ${formatCurrency(state.minimumCharge)}`
       : "Quote based on your cost, overhead, and profit inputs";
 
+    updateProgressChips(state);
+    renderQuoteContext(state);
+
+    if (elements.resultGuidance) {
+      if (!state.hours && !state.materials && !state.travelFee && !state.addOns) {
+        elements.resultGuidance.textContent =
+          "Start with hours, labor rate, and the main job costs. The quote updates instantly as you fill in the form.";
+      } else if (!state.customerScope) {
+        elements.resultGuidance.textContent =
+          "The price is updating. Add a customer-facing scope if you want a cleaner client-ready version.";
+      } else {
+        elements.resultGuidance.textContent =
+          "The quote is ready to use. Copy the internal summary, send the client version, or save the job for later.";
+      }
+    }
+
     renderQuoteSummary({
       ...state,
       laborHours,
@@ -626,7 +923,47 @@ function initializeQuoteWorkbench() {
       recoveryRate,
       minimumApplied
     });
+    renderSuggestedScope({
+      ...state,
+      laborHours,
+      laborCost,
+      overheadAmount,
+      totalCostBasis,
+      recommendedQuote,
+      recoveryRate,
+      minimumApplied
+    });
     renderSupplyCompare({
+      ...state,
+      laborHours,
+      laborCost,
+      overheadAmount,
+      totalCostBasis,
+      recommendedQuote,
+      recoveryRate,
+      minimumApplied
+    });
+    renderQuoteHealth({
+      ...state,
+      laborHours,
+      laborCost,
+      overheadAmount,
+      totalCostBasis,
+      recommendedQuote,
+      recoveryRate,
+      minimumApplied
+    });
+    renderQuoteBreakdown({
+      ...state,
+      laborHours,
+      laborCost,
+      overheadAmount,
+      totalCostBasis,
+      recommendedQuote,
+      recoveryRate,
+      minimumApplied
+    });
+    renderNextAction({
       ...state,
       laborHours,
       laborCost,
@@ -671,8 +1008,6 @@ function initializeQuoteWorkbench() {
     if (result.notes) {
       lines.push(`Notes: ${result.notes}`);
     }
-
-    lines.push("Built with JobQuote Kit quote workbench.");
     return lines.join("\n");
   }
 
@@ -705,8 +1040,8 @@ function initializeQuoteWorkbench() {
     if (elements.supplyCostShare) {
       elements.supplyCostShare.textContent =
         result.materials > 0
-          ? `Materials currently account for about ${materialsShare}% of this quote. Use the compare links to sense-check your purchasing budget.`
-          : "No materials cost is entered yet. Add one if you want a clearer purchasing benchmark.";
+          ? `Materials currently account for about ${materialsShare}% of this quote. Review the checklist before sending the final number.`
+          : "No materials cost is entered yet. Add one if you want a clearer quote check.";
     }
 
     elements.supplyList.innerHTML = template
@@ -718,7 +1053,7 @@ function initializeQuoteWorkbench() {
           <article class="supply-item">
             <div class="supply-item-header">
               <strong>${item.name}</strong>
-              <button type="button" class="tool-link-button" data-supply-query="${encodeURIComponent(query)}">Use this search</button>
+              <button type="button" class="tool-link-button" data-supply-query="${encodeURIComponent(query)}">Use phrase</button>
             </div>
             <p>${item.getGuide(result)}</p>
             <div class="supply-meta-grid">
@@ -727,7 +1062,7 @@ function initializeQuoteWorkbench() {
                 <strong>${formatBudgetRange(lowBudget, highBudget)}</strong>
               </article>
               <article class="supply-meta-card">
-                <span>Why this search works</span>
+                <span>Why to check it</span>
                 <strong>${item.rationale}</strong>
               </article>
             </div>
@@ -775,7 +1110,7 @@ function initializeQuoteWorkbench() {
     const query = elements.supplySearchInput?.value.trim();
 
     if (!query) {
-      setStatus("Enter a product or supply phrase first so the compare search can be saved.");
+      setStatus("Enter a product or supply phrase first so it can be saved.");
       return;
     }
 
@@ -792,23 +1127,23 @@ function initializeQuoteWorkbench() {
 
     if (elements.supplySearchStatus) {
       elements.supplySearchStatus.textContent =
-        "Saved compare search. You can reload it later and jump back out to supplier result pages.";
+        "Saved this material phrase. You can reload it later if you use this supply often.";
     }
 
-    setStatus(`Saved a supply compare search for ${query}.`);
+    setStatus(`Saved a material phrase for ${query}.`);
   }
 
   function buildProcurementSummary(result) {
     const serviceLabel = DEFAULT_TOOL_PROFILES[result.serviceType]?.label || "Service";
     const template = SUPPLY_TEMPLATES[result.serviceType] || SUPPLY_TEMPLATES.painting;
     const lines = [
-      `JobQuote Kit procurement summary`,
+      `JobQuote Kit materials note`,
       `${serviceLabel} job: ${result.jobName || "untitled job"}`,
       `Recommended quote: ${formatCurrency(result.recommendedQuote)}`,
       `Materials budget entered: ${formatCurrency(result.materials)}`,
       result.area ? `Job size / area: ${result.area}` : "Job size / area: not entered",
       "",
-      "Suggested buying checklist:"
+      "Suggested materials checklist:"
     ];
 
     template.forEach((item) => {
@@ -817,8 +1152,8 @@ function initializeQuoteWorkbench() {
       const highBudget = Math.round((result.materials || result.recommendedQuote || 0) * item.budgetShare[1]);
       lines.push(`- ${item.name}`);
       lines.push(`  Budget reference: ${formatBudgetRange(lowBudget, highBudget)}`);
-      lines.push(`  Why this search works: ${item.rationale}`);
-      lines.push(`  Search phrase: ${query}`);
+      lines.push(`  Why to check it: ${item.rationale}`);
+      lines.push(`  Optional search phrase: ${query}`);
     });
 
     lines.push("");
@@ -940,9 +1275,9 @@ function initializeQuoteWorkbench() {
 
     try {
       await navigator.clipboard.writeText(summary);
-      setStatus("Copied the procurement summary. You can paste it into email, notes, or your purchasing workflow.");
+      setStatus("Copied the materials summary. You can paste it into email, notes, or your job checklist.");
     } catch (error) {
-      console.error("Failed to copy procurement summary:", error);
+      console.error("Failed to copy materials summary:", error);
       window.alert("Copy failed in this browser. Please use the export option instead.");
     }
   }
@@ -950,8 +1285,8 @@ function initializeQuoteWorkbench() {
   function downloadProcurementSummary() {
     const result = calculateQuote();
     const summary = buildProcurementSummary(result);
-    const safeName = (result.jobName || `${result.serviceType}-procurement`).toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const fileName = `${safeName || "procurement-summary"}.txt`;
+    const safeName = (result.jobName || `${result.serviceType}-materials`).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const fileName = `${safeName || "materials-summary"}.txt`;
     const blob = new Blob([summary], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -961,7 +1296,7 @@ function initializeQuoteWorkbench() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    setStatus(`Exported procurement summary as ${fileName}.`);
+    setStatus(`Exported materials summary as ${fileName}.`);
   }
 
   function renderSavedProcurements() {
@@ -983,7 +1318,7 @@ function initializeQuoteWorkbench() {
       item.className = "recent-search-item";
       item.innerHTML = `
         <div>
-          <strong>${entry.jobName || DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "Procurement bundle"}</strong>
+          <strong>${entry.jobName || DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "Saved materials note"}</strong>
           <p>${DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "Service"} · ${formatCurrency(entry.recommendedQuote)} · ${formatCompactDate(entry.savedAt)}</p>
         </div>
         <div class="saved-quote-actions">
@@ -1022,7 +1357,7 @@ function initializeQuoteWorkbench() {
     saveProcurementState(savedProcurements);
     renderSavedProcurements();
     setStatus(
-      `Saved procurement bundle for ${entry.jobName || DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "this job"}. You can reload the whole bundle later.`
+      `Saved a materials note for ${entry.jobName || DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "this job"}. You can reload it later.`
     );
   }
 
@@ -1095,7 +1430,7 @@ function initializeQuoteWorkbench() {
     saveQuoteState(savedQuotes);
     renderHistory();
     setStatus(
-      `Saved quote for ${result.jobName || DEFAULT_TOOL_PROFILES[result.serviceType]?.label || "this job"} locally. You can reload it from the history panel anytime.`
+      `Saved job for ${result.jobName || DEFAULT_TOOL_PROFILES[result.serviceType]?.label || "this job"}. You can reload it from Recent jobs anytime.`
     );
   }
 
@@ -1144,8 +1479,10 @@ function initializeQuoteWorkbench() {
     elements.profitPct.value = quote.profitPct || "";
     elements.minimumCharge.value = quote.minimumCharge || "";
     elements.notes.value = quote.notes || "";
+    elements.customerScope.value = quote.customerScope || "";
 
     renderProfileSummary(quote.serviceType);
+    updateServiceShortcuts(quote.serviceType);
     calculateQuote();
   }
 
@@ -1157,6 +1494,8 @@ function initializeQuoteWorkbench() {
         hours: 18,
         materials: 420,
         addOns: 160,
+        customerScope:
+          "Repaint the main living areas and hallway, protect floors and furniture, complete light wall patching, and leave the work area clean at the end of the job.",
         notes: "Two accent walls, minor patching, protect furniture and floors."
       },
       cleaning: {
@@ -1165,6 +1504,8 @@ function initializeQuoteWorkbench() {
         hours: 6,
         materials: 28,
         addOns: 45,
+        customerScope:
+          "Clean the kitchen, bathrooms, bedrooms, and main living areas, complete standard touch-point cleaning, and finish with a final tidy-up before leaving.",
         notes: "Includes fridge wipe-down and one pet-hair surcharge."
       },
       pressure: {
@@ -1173,6 +1514,8 @@ function initializeQuoteWorkbench() {
         hours: 5,
         materials: 35,
         addOns: 70,
+        customerScope:
+          "Pressure wash the driveway and back patio, apply standard treatment where needed, move light furniture as required, and leave the area clear after service.",
         notes: "Oil spot treatment and furniture move included."
       },
       lawn: {
@@ -1181,6 +1524,8 @@ function initializeQuoteWorkbench() {
         hours: 2,
         materials: 0,
         addOns: 25,
+        customerScope:
+          "Mow, edge, trim, and blow the lawn areas, complete light bed cleanup as listed, and leave the property neat after the visit.",
         notes: "Mow, edge, trim, blow, and front bed weed cleanup."
       }
     };
@@ -1192,6 +1537,7 @@ function initializeQuoteWorkbench() {
     elements.hours.value = example.hours;
     elements.materials.value = example.materials;
     elements.addOns.value = example.addOns;
+    elements.customerScope.value = example.customerScope;
     elements.notes.value = example.notes;
     calculateQuote();
   }
@@ -1202,12 +1548,12 @@ function initializeQuoteWorkbench() {
 
   elements.serviceType.addEventListener("change", () => {
     applyProfile(elements.serviceType.value);
-    setStatus(`Loaded your ${DEFAULT_TOOL_PROFILES[elements.serviceType.value]?.label || "service"} defaults. Next step: enter hours and job costs.`);
+    setStatus(`Loaded ${DEFAULT_TOOL_PROFILES[elements.serviceType.value]?.label || "service"} pricing. Next step: enter hours and job costs.`);
   });
 
   function handleLoadExample() {
     loadExampleQuote(elements.serviceType.value);
-    setStatus("Example loaded. Review the numbers, change anything that does not match your job, then save the quote if you want to reuse it later.");
+    setStatus("Example loaded. Change the numbers to match your real job, then copy or save the result when it looks right.");
   }
 
   elements.loadExampleButton.addEventListener("click", handleLoadExample);
@@ -1229,7 +1575,7 @@ function initializeQuoteWorkbench() {
     };
     saveProfileState(profiles);
     renderProfileSummary(state.serviceType);
-    setStatus(`Saved ${DEFAULT_TOOL_PROFILES[state.serviceType]?.label || "service"} pricing defaults in this browser. Next time you come back, this service will load faster.`);
+    setStatus(`Saved ${DEFAULT_TOOL_PROFILES[state.serviceType]?.label || "service"} service rates in this browser.`);
   });
 
   elements.saveQuoteButton.addEventListener("click", saveCurrentQuote);
@@ -1240,7 +1586,7 @@ function initializeQuoteWorkbench() {
 
   elements.resetButton.addEventListener("click", () => {
     applyProfile(elements.serviceType.value, false);
-    setStatus("Cleared the current quote. Your saved service defaults are still kept. Tip: use Load example if you want a quick starting point.");
+    setStatus("Cleared the current quote. Your saved service rates are still kept. Use Try example if you want a quick starting point.");
   });
 
   elements.clearHistoryButton.addEventListener("click", () => {
@@ -1285,10 +1631,10 @@ function initializeQuoteWorkbench() {
 
       if (elements.supplySearchStatus) {
         elements.supplySearchStatus.textContent =
-          "Search phrase loaded. You can save it now or open supplier result pages from the cards above.";
+          "Material phrase loaded. You can save it now or use the supplier links in the cards above.";
       }
 
-      setStatus(`Loaded supply compare phrase for ${query}.`);
+      setStatus(`Loaded material phrase for ${query}.`);
     });
   }
 
@@ -1310,10 +1656,10 @@ function initializeQuoteWorkbench() {
 
           if (elements.supplySearchStatus) {
             elements.supplySearchStatus.textContent =
-              "Saved compare search loaded. Edit it if needed, or open supplier result pages from the recommendation cards.";
+              "Saved material phrase loaded. Edit it if needed, or use the supplier links in the checklist cards.";
           }
 
-          setStatus(`Loaded saved supply compare search for ${savedSearch.query}.`);
+          setStatus(`Loaded saved material phrase for ${savedSearch.query}.`);
         }
       }
 
@@ -1322,7 +1668,7 @@ function initializeQuoteWorkbench() {
         savedSupplySearches = savedSupplySearches.filter((entry) => entry.id !== targetId);
         saveSupplySearchState(savedSupplySearches);
         renderRecentSupplySearches();
-        setStatus("Removed one saved supply compare search.");
+        setStatus("Removed one saved material phrase.");
       }
     });
   }
@@ -1347,6 +1693,14 @@ function initializeQuoteWorkbench() {
     elements.copyClientSheetButton.addEventListener("click", copyClientSheet);
   }
 
+  if (elements.copyClientSheetPrimaryButton) {
+    elements.copyClientSheetPrimaryButton.addEventListener("click", copyClientSheet);
+  }
+
+  if (elements.copyClientSheetMobileButton) {
+    elements.copyClientSheetMobileButton.addEventListener("click", copyClientSheet);
+  }
+
   if (elements.emailClientSheetButton) {
     elements.emailClientSheetButton.addEventListener("click", emailClientSheet);
   }
@@ -1357,6 +1711,19 @@ function initializeQuoteWorkbench() {
 
   if (elements.saveProcurementButton) {
     elements.saveProcurementButton.addEventListener("click", saveCurrentProcurement);
+  }
+
+  if (elements.useSuggestedScopeButton) {
+    elements.useSuggestedScopeButton.addEventListener("click", () => {
+      const result = calculateQuote();
+      elements.customerScope.value = buildSuggestedScope(result);
+      calculateQuote();
+      setStatus("Inserted the suggested client scope. Edit it if you want to match the job more closely.");
+    });
+  }
+
+  if (elements.saveQuoteResultButton) {
+    elements.saveQuoteResultButton.addEventListener("click", saveCurrentQuote);
   }
 
   if (elements.savedProcurementList) {
@@ -1371,7 +1738,7 @@ function initializeQuoteWorkbench() {
         if (savedBundle) {
           loadProcurementIntoForm(savedBundle);
           setStatus(
-            `Loaded procurement bundle for ${savedBundle.jobName || DEFAULT_TOOL_PROFILES[savedBundle.serviceType]?.label || "this job"}.`
+            `Loaded materials note for ${savedBundle.jobName || DEFAULT_TOOL_PROFILES[savedBundle.serviceType]?.label || "this job"}.`
           );
         }
       }
@@ -1381,7 +1748,7 @@ function initializeQuoteWorkbench() {
         savedProcurements = savedProcurements.filter((entry) => entry.id !== targetId);
         saveProcurementState(savedProcurements);
         renderSavedProcurements();
-        setStatus("Removed one saved procurement bundle.");
+        setStatus("Removed one saved materials note.");
       }
     });
   }
@@ -1404,7 +1771,7 @@ function initializeQuoteWorkbench() {
   renderRecentSupplySearches();
   renderSavedProcurements();
   applyProfile(elements.serviceType.value || "painting");
-  setStatus("Quote workspace ready. Best first step: choose a service or tap Load example.");
+  setStatus("Ready to price. Choose a service or tap Try example.");
 }
 
 hydrateAdSlots();
