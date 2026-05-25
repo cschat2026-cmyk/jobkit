@@ -1,6 +1,14 @@
+const EZOIC_ENABLED = true;
 const ADSENSE_ENABLED = true;
 const ADSENSE_CLIENT = "ca-pub-2456404542897668";
 const CONTACT_EMAIL = "cschat2026@gmail.com";
+
+const EZOIC_PLACEHOLDER_MAP = {
+  leaderboard: "",
+  sidebar: "",
+  inline: "",
+  footer: ""
+};
 
 const ADSENSE_SLOT_MAP = {
   leaderboard: "",
@@ -209,6 +217,42 @@ function loadAdSenseScript() {
   });
 }
 
+function getActiveEzoicPlaceholderIds() {
+  return Object.values(EZOIC_PLACEHOLDER_MAP)
+    .map((placeholderId) => Number.parseInt(placeholderId, 10))
+    .filter((placeholderId) => Number.isInteger(placeholderId) && placeholderId > 0);
+}
+
+function renderEzoicSlots(slots) {
+  const placeholderIds = getActiveEzoicPlaceholderIds();
+
+  if (!EZOIC_ENABLED || !placeholderIds.length || !window.ezstandalone?.cmd) {
+    return false;
+  }
+
+  document.documentElement.dataset.adProvider = "ezoic";
+  document.documentElement.dataset.adsense = "standby";
+  document.documentElement.dataset.ezoic = "enabled";
+
+  slots.forEach((slot) => {
+    const slotKey = slot.dataset.adSlotKey;
+    const placeholderId = Number.parseInt(EZOIC_PLACEHOLDER_MAP[slotKey], 10);
+
+    if (!Number.isInteger(placeholderId) || placeholderId <= 0) {
+      return;
+    }
+
+    slot.dataset.ezoicPlaceholder = String(placeholderId);
+    slot.innerHTML = `<div id="ezoic-pub-ad-placeholder-${placeholderId}"></div>`;
+  });
+
+  ezstandalone.cmd.push(() => {
+    ezstandalone.showAds(...placeholderIds);
+  });
+
+  return true;
+}
+
 function hydrateAdSlots() {
   const slots = document.querySelectorAll(".ad-slot[data-ad-slot-key]");
 
@@ -216,7 +260,14 @@ function hydrateAdSlots() {
     return;
   }
 
+  if (renderEzoicSlots(slots)) {
+    return;
+  }
+
+  document.documentElement.dataset.ezoic = EZOIC_ENABLED ? "pending" : "disabled";
+
   if (!ADSENSE_ENABLED) {
+    document.documentElement.dataset.adProvider = "none";
     document.documentElement.dataset.adsense = "disabled";
     return;
   }
@@ -224,10 +275,12 @@ function hydrateAdSlots() {
   const hasManualSlots = Object.values(ADSENSE_SLOT_MAP).some((slotId) => /^\d{8,}$/.test(slotId));
 
   if (!hasManualSlots) {
+    document.documentElement.dataset.adProvider = "pending";
     document.documentElement.dataset.adsense = "pending";
     return;
   }
 
+  document.documentElement.dataset.adProvider = "adsense";
   document.documentElement.dataset.adsense = "enabled";
 
   loadAdSenseScript()

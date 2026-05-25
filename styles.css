@@ -1751,11 +1751,37 @@ html[data-device-mode="mobile"] .workbench-sidebar {
   border-style: dashed;
 }
 
+html[data-ad-provider="ezoic"] .ad-slot,
+html[data-ad-provider="adsense"] .ad-slot,
 html[data-adsense="enabled"] .ad-slot {
   padding: 0;
   min-height: 0;
   background: transparent;
-  border-style: dashed;
+  border: 0;
+  box-shadow: none;
+}
+
+html[data-ad-provider="ezoic"] .ad-slot > span,
+html[data-ad-provider="ezoic"] .ad-slot > strong,
+html[data-ad-provider="ezoic"] .ad-slot > p,
+html[data-ad-provider="adsense"] .ad-slot > span,
+html[data-ad-provider="adsense"] .ad-slot > strong,
+html[data-ad-provider="adsense"] .ad-slot > p {
+  display: none;
+}
+
+html[data-ad-provider="ezoic"] .ad-slot [id^="ezoic-pub-ad-placeholder-"] {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+}
+
+html[data-ad-provider="ezoic"] .ad-slot-leaderboard [id^="ezoic-pub-ad-placeholder-"] {
+  min-height: 180px;
+}
+
+html[data-ad-provider="ezoic"] .ad-slot-inline [id^="ezoic-pub-ad-placeholder-"] {
+  min-height: 220px;
 }
 
 html[data-adsense="enabled"] .ad-slot .adsbygoogle {
