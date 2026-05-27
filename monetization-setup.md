@@ -9,6 +9,9 @@ JobQuote Kit is configured for Ezoic-first monetization with Google AdSense as t
 - `script.js` uses Ezoic first when real Ezoic placeholder IDs are present.
 - If Ezoic placeholder IDs are empty, the site falls back to AdSense slot IDs when those are present.
 - If neither provider has real placement IDs, the page keeps clean placeholder ad panels instead of rendering broken ad code.
+- Trust/support pages are live at `/about/`, `/editorial/`, `/privacy/`, and `/contact/`.
+- A public `/terms/` page is live and linked across the site.
+- A `google-adsense-account` meta tag is present on the site pages.
 
 ## Fill these after Ezoic setup
 
@@ -99,3 +102,9 @@ curl -L https://srv.adstxtmanager.com/19390/jobkit20.top > ads.txt
 The workflow uses a safer version of that command and will only replace `ads.txt` if the download succeeds and looks like a seller list.
 
 Important: the Ezoic manager URL currently needs to be active inside Ezoic. If `https://srv.adstxtmanager.com/19390/jobkit20.top` returns `404`, finish domain/site setup in Ezoic first, then run the workflow manually or wait for the daily schedule.
+
+## Approval-readiness notes
+
+- Keep the contact page published and linked in the main navigation and footer.
+- Keep privacy, editorial, about, and terms pages accessible without login or popups.
+- Avoid adding aggressive ad placements before approval. Content and tool utility should stay primary.
