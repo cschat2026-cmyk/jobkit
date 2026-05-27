@@ -1,12 +1,11 @@
 # Monetization setup
 
-JobQuote Kit is configured for Ezoic-first monetization with Google AdSense as the fallback path.
+JobQuote Kit is currently tuned for Google AdSense review readiness, with Ezoic compatibility kept in reserve for later activation.
 
 ## Current state
 
-- Ezoic Standalone script is loaded in `index.html`.
 - Google AdSense script remains loaded in `index.html`.
-- `script.js` uses Ezoic first when real Ezoic placeholder IDs are present.
+- `script.js` currently keeps Ezoic disabled during the Google review phase.
 - If Ezoic placeholder IDs are empty, the site falls back to AdSense slot IDs when those are present.
 - If neither provider has real placement IDs, the page keeps clean placeholder ad panels instead of rendering broken ad code.
 - Trust/support pages are live at `/about/`, `/editorial/`, `/privacy/`, and `/contact/`.
@@ -49,6 +48,14 @@ const ADSENSE_SLOT_MAP = {
 ```
 
 Use Google ad slot IDs from AdSense. Ezoic will still take priority when Ezoic placeholders are present.
+
+If you want to reactivate Ezoic later, switch:
+
+```js
+const EZOIC_ENABLED = true;
+```
+
+and restore the Ezoic script in `index.html` after the Ezoic side is approved and the placeholder IDs are ready.
 
 ## ads.txt
 

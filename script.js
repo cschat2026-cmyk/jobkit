@@ -1,4 +1,4 @@
-const EZOIC_ENABLED = true;
+const EZOIC_ENABLED = false;
 const ADSENSE_ENABLED = true;
 const ADSENSE_CLIENT = "ca-pub-2456404542897668";
 const CONTACT_EMAIL = "cschat2026@gmail.com";
@@ -19,8 +19,6 @@ const ADSENSE_SLOT_MAP = {
 
 const PROFILE_STORAGE_KEY = "sqhq_profiles_v2";
 const QUOTE_STORAGE_KEY = "sqhq_quotes_v2";
-const SUPPLY_SEARCH_STORAGE_KEY = "sqhq_supply_searches_v1";
-const PROCUREMENT_STORAGE_KEY = "sqhq_procurement_bundles_v1";
 
 const DEFAULT_TOOL_PROFILES = {
   painting: {
@@ -61,123 +59,6 @@ const DEFAULT_TOOL_PROFILES = {
   }
 };
 
-const SUPPLY_PLATFORM_LINKS = [
-  {
-    label: "Amazon",
-    buildUrl: (query) => `https://www.amazon.com/s?k=${encodeURIComponent(query)}`
-  },
-  {
-    label: "Home Depot",
-    buildUrl: (query) => `https://www.homedepot.com/s/${encodeURIComponent(query)}`
-  },
-  {
-    label: "Lowe's",
-    buildUrl: (query) => `https://www.lowes.com/search?searchTerm=${encodeURIComponent(query)}`
-  },
-  {
-    label: "Walmart",
-    buildUrl: (query) => `https://www.walmart.com/search?q=${encodeURIComponent(query)}`
-  },
-  {
-    label: "eBay",
-    buildUrl: (query) => `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}`
-  }
-];
-
-const SUPPLY_TEMPLATES = {
-  painting: [
-    {
-      name: "Interior wall paint",
-      budgetShare: [0.45, 0.7],
-      rationale: "This search phrase keeps the result set focused on contractor-sized paint volume instead of small DIY cans.",
-      makeQuery: (state) => `${state.area || 1} sq ft interior wall paint 5 gallon`,
-      getGuide: (state) => `Start with about ${Math.max(1, Math.ceil((state.area || 400) / 350))} gallons for one moderate-coat pass.`
-    },
-    {
-      name: "Primer and prep supplies",
-      budgetShare: [0.15, 0.3],
-      rationale: "Bundling primer, tape, and floor protection reduces the chance that prep costs get undercounted in the final job margin.",
-      makeQuery: () => "interior paint primer painter tape drop cloth bundle",
-      getGuide: () => "Useful when prep quality and floor protection matter more than lowest unit price."
-    },
-    {
-      name: "Patch and repair materials",
-      budgetShare: [0.08, 0.18],
-      rationale: "This search is built for common touch-up and patch work so the user can price wall repair separately from coating materials.",
-      makeQuery: () => "drywall patch spackle sanding sponge kit",
-      getGuide: () => "Best for repaint jobs with nail pops, dents, and light wall repair."
-    }
-  ],
-  cleaning: [
-    {
-      name: "General cleaning chemical set",
-      budgetShare: [0.35, 0.55],
-      rationale: "The phrase favors professional supply bundles, which are closer to recurring-service buying patterns than single-bottle retail searches.",
-      makeQuery: () => "professional house cleaning supplies all purpose disinfectant microfiber bundle",
-      getGuide: () => "Useful for recurring jobs where consistency matters more than one-time deep clean purchases."
-    },
-    {
-      name: "Deep clean add-on supplies",
-      budgetShare: [0.2, 0.38],
-      rationale: "It targets heavier bathroom and kitchen reset supplies so users can separate deep-clean costs from standard recurring jobs.",
-      makeQuery: () => "oven degreaser bathroom scale remover grout brush cleaning kit",
-      getGuide: () => "Good when your quote includes a move-out, first-time clean, or heavy kitchen/bath reset."
-    },
-    {
-      name: "Vacuum and tool accessories",
-      budgetShare: [0.12, 0.24],
-      rationale: "Accessory replacement quietly eats margin, so this search helps users account for consumables that are easy to forget in small jobs.",
-      makeQuery: () => "commercial vacuum bags filter mop pad bulk",
-      getGuide: () => "Helps protect margins on frequent recurring cleans where accessory replacement adds up."
-    }
-  ],
-  pressure: [
-    {
-      name: "Surface cleaner or wand upgrade",
-      budgetShare: [0.35, 0.6],
-      rationale: "This phrase surfaces higher-output attachments that matter most when driveway and patio work is a repeated revenue line.",
-      makeQuery: () => "pressure washer surface cleaner attachment commercial",
-      getGuide: () => "Often worth checking if driveways and patios are a frequent quote type."
-    },
-    {
-      name: "Degreaser and treatment chemicals",
-      budgetShare: [0.18, 0.34],
-      rationale: "It keeps the search focused on restoration chemistry instead of generic soap, which is more useful when charging for stain treatment.",
-      makeQuery: () => "pressure washing degreaser oil stain treatment",
-      getGuide: () => "Useful when your add-ons include stain treatment or heavier restoration work."
-    },
-    {
-      name: "Hose, nozzles, and quick-connect parts",
-      budgetShare: [0.1, 0.22],
-      rationale: "These are common operational replacements, so the search is designed to support uptime rather than one-off shopping.",
-      makeQuery: () => "pressure washer hose nozzle quick connect kit",
-      getGuide: () => "A common maintenance purchase that can quietly affect job readiness and margin."
-    }
-  ],
-  lawn: [
-    {
-      name: "String trimmer line and blades",
-      budgetShare: [0.18, 0.34],
-      rationale: "This phrase prioritizes recurring-use consumables that route-based operators buy again and again during the season.",
-      makeQuery: () => "commercial trimmer line edger blades bulk",
-      getGuide: () => "Recurring route work benefits from keeping these consumables easy to reorder."
-    },
-    {
-      name: "Weed control and bed cleanup supplies",
-      budgetShare: [0.22, 0.4],
-      rationale: "It narrows results to detail-work materials so the user can justify add-on pricing beyond basic mowing.",
-      makeQuery: () => "landscape weed control gloves yard waste bags",
-      getGuide: () => "Best when your quote includes detail work beyond simple mowing and blowing."
-    },
-    {
-      name: "Fuel, oil, and maintenance bundle",
-      budgetShare: [0.18, 0.32],
-      rationale: "Maintenance inputs are easy to ignore in small-job quoting, so this search keeps route reliability costs visible.",
-      makeQuery: () => "small engine oil fuel can air filter mower maintenance kit",
-      getGuide: () => "Helpful for protecting route reliability over the full season."
-    }
-  ]
-};
 
 function loadAdSenseScript() {
   if (!ADSENSE_ENABLED || !ADSENSE_CLIENT.startsWith("ca-pub-")) {
@@ -275,7 +156,7 @@ function hydrateAdSlots() {
   const hasManualSlots = Object.values(ADSENSE_SLOT_MAP).some((slotId) => /^\d{8,}$/.test(slotId));
 
   if (!hasManualSlots) {
-    document.documentElement.dataset.adProvider = "pending";
+    document.documentElement.dataset.adProvider = "none";
     document.documentElement.dataset.adsense = "pending";
     return;
   }
@@ -433,10 +314,6 @@ function formatCurrency(value) {
   }).format(value || 0);
 }
 
-function formatBudgetRange(minValue, maxValue) {
-  return `${formatCurrency(minValue)} to ${formatCurrency(maxValue)}`;
-}
-
 function formatCompactDate(value) {
   return new Date(value).toLocaleString("en-US", {
     month: "short",
@@ -477,32 +354,6 @@ function saveQuoteState(quotes) {
   localStorage.setItem(QUOTE_STORAGE_KEY, JSON.stringify(quotes));
 }
 
-function loadSupplySearchState() {
-  try {
-    return JSON.parse(localStorage.getItem(SUPPLY_SEARCH_STORAGE_KEY) || "[]");
-  } catch (error) {
-    console.error("Failed to load saved supply searches:", error);
-    return [];
-  }
-}
-
-function saveSupplySearchState(searches) {
-  localStorage.setItem(SUPPLY_SEARCH_STORAGE_KEY, JSON.stringify(searches));
-}
-
-function loadProcurementState() {
-  try {
-    return JSON.parse(localStorage.getItem(PROCUREMENT_STORAGE_KEY) || "[]");
-  } catch (error) {
-    console.error("Failed to load saved material notes:", error);
-    return [];
-  }
-}
-
-function saveProcurementState(entries) {
-  localStorage.setItem(PROCUREMENT_STORAGE_KEY, JSON.stringify(entries));
-}
-
 function initializeQuoteWorkbench() {
   const form = document.querySelector("[data-quote-workbench]");
 
@@ -512,8 +363,6 @@ function initializeQuoteWorkbench() {
 
   let profiles = loadProfileState();
   let savedQuotes = loadQuoteState();
-  let savedSupplySearches = loadSupplySearchState();
-  let savedProcurements = loadProcurementState();
 
   const elements = {
     serviceType: document.getElementById("service-type"),
@@ -558,19 +407,6 @@ function initializeQuoteWorkbench() {
     quoteSummary: document.getElementById("quote-summary"),
     copySummaryButton: document.getElementById("copy-summary"),
     emailSummaryButton: document.getElementById("email-summary"),
-    supplyList: document.getElementById("supply-list"),
-    supplyCostShare: document.getElementById("supply-cost-share"),
-    supplySearchInput: document.getElementById("supply-search-input"),
-    saveSupplySearchButton: document.getElementById("save-supply-search"),
-    supplySearchStatus: document.getElementById("supply-search-status"),
-    recentSupplyEmpty: document.getElementById("recent-supply-empty"),
-    recentSupplySearches: document.getElementById("recent-supply-searches"),
-    procurementSummary: document.getElementById("procurement-summary"),
-    saveProcurementButton: document.getElementById("save-procurement"),
-    copyProcurementButton: document.getElementById("copy-procurement"),
-    downloadProcurementButton: document.getElementById("download-procurement"),
-    savedProcurementEmpty: document.getElementById("saved-procurement-empty"),
-    savedProcurementList: document.getElementById("saved-procurement-list"),
     clientSheetPreview: document.getElementById("client-sheet-preview"),
     copyClientSheetButton: document.getElementById("copy-client-sheet"),
     emailClientSheetButton: document.getElementById("email-client-sheet"),
@@ -956,16 +792,6 @@ function initializeQuoteWorkbench() {
       recoveryRate,
       minimumApplied
     });
-    renderProcurementSummary({
-      ...state,
-      laborHours,
-      laborCost,
-      overheadAmount,
-      totalCostBasis,
-      recommendedQuote,
-      recoveryRate,
-      minimumApplied
-    });
     renderClientSheet({
       ...state,
       laborHours,
@@ -977,16 +803,6 @@ function initializeQuoteWorkbench() {
       minimumApplied
     });
     renderSuggestedScope({
-      ...state,
-      laborHours,
-      laborCost,
-      overheadAmount,
-      totalCostBasis,
-      recommendedQuote,
-      recoveryRate,
-      minimumApplied
-    });
-    renderSupplyCompare({
       ...state,
       laborHours,
       laborCost,
@@ -1070,156 +886,6 @@ function initializeQuoteWorkbench() {
     }
 
     elements.quoteSummary.textContent = buildQuoteSummary(result);
-  }
-
-  function buildPlatformLinks(query) {
-    return SUPPLY_PLATFORM_LINKS.map(
-      (platform) => `
-        <a class="supply-link-pill" href="${platform.buildUrl(query)}" target="_blank" rel="noopener noreferrer">
-          ${platform.label}
-        </a>
-      `
-    ).join("");
-  }
-
-  function renderSupplyCompare(result) {
-    if (!elements.supplyList) {
-      return;
-    }
-
-    const template = SUPPLY_TEMPLATES[result.serviceType] || SUPPLY_TEMPLATES.painting;
-    const materialsShare = result.recommendedQuote > 0 ? Math.round((result.materials / result.recommendedQuote) * 100) : 0;
-
-    if (elements.supplyCostShare) {
-      elements.supplyCostShare.textContent =
-        result.materials > 0
-          ? `Materials currently account for about ${materialsShare}% of this quote. Review the checklist before sending the final number.`
-          : "No materials cost is entered yet. Add one if you want a clearer quote check.";
-    }
-
-    elements.supplyList.innerHTML = template
-      .map((item) => {
-        const query = item.makeQuery(result);
-        const lowBudget = Math.round((result.materials || result.recommendedQuote || 0) * item.budgetShare[0]);
-        const highBudget = Math.round((result.materials || result.recommendedQuote || 0) * item.budgetShare[1]);
-        return `
-          <article class="supply-item">
-            <div class="supply-item-header">
-              <strong>${item.name}</strong>
-              <button type="button" class="tool-link-button" data-supply-query="${encodeURIComponent(query)}">Use phrase</button>
-            </div>
-            <p>${item.getGuide(result)}</p>
-            <div class="supply-meta-grid">
-              <article class="supply-meta-card">
-                <span>Budget reference</span>
-                <strong>${formatBudgetRange(lowBudget, highBudget)}</strong>
-              </article>
-              <article class="supply-meta-card">
-                <span>Why to check it</span>
-                <strong>${item.rationale}</strong>
-              </article>
-            </div>
-            <div class="supply-link-row">
-              ${buildPlatformLinks(query)}
-            </div>
-          </article>
-        `;
-      })
-      .join("");
-  }
-
-  function renderRecentSupplySearches() {
-    if (!elements.recentSupplySearches || !elements.recentSupplyEmpty) {
-      return;
-    }
-
-    elements.recentSupplySearches.innerHTML = "";
-
-    if (!savedSupplySearches.length) {
-      elements.recentSupplyEmpty.hidden = false;
-      return;
-    }
-
-    elements.recentSupplyEmpty.hidden = true;
-
-    savedSupplySearches.forEach((entry) => {
-      const item = document.createElement("article");
-      item.className = "recent-search-item";
-      item.innerHTML = `
-        <div>
-          <strong>${entry.query}</strong>
-          <p>${DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "Service"} · ${formatCompactDate(entry.savedAt)}</p>
-        </div>
-        <div class="saved-quote-actions">
-          <button type="button" class="tool-link-button" data-run-supply-search="${entry.id}">Load</button>
-          <button type="button" class="tool-link-button danger" data-delete-supply-search="${entry.id}">Delete</button>
-        </div>
-      `;
-      elements.recentSupplySearches.appendChild(item);
-    });
-  }
-
-  function saveSupplySearch() {
-    const query = elements.supplySearchInput?.value.trim();
-
-    if (!query) {
-      setStatus("Enter a product or supply phrase first so it can be saved.");
-      return;
-    }
-
-    const entry = {
-      id: Date.now(),
-      savedAt: new Date().toISOString(),
-      serviceType: elements.serviceType.value,
-      query
-    };
-
-    savedSupplySearches = [entry, ...savedSupplySearches].slice(0, 10);
-    saveSupplySearchState(savedSupplySearches);
-    renderRecentSupplySearches();
-
-    if (elements.supplySearchStatus) {
-      elements.supplySearchStatus.textContent =
-        "Saved this material phrase. You can reload it later if you use this supply often.";
-    }
-
-    setStatus(`Saved a material phrase for ${query}.`);
-  }
-
-  function buildProcurementSummary(result) {
-    const serviceLabel = DEFAULT_TOOL_PROFILES[result.serviceType]?.label || "Service";
-    const template = SUPPLY_TEMPLATES[result.serviceType] || SUPPLY_TEMPLATES.painting;
-    const lines = [
-      `JobQuote Kit materials note`,
-      `${serviceLabel} job: ${result.jobName || "untitled job"}`,
-      `Recommended quote: ${formatCurrency(result.recommendedQuote)}`,
-      `Materials budget entered: ${formatCurrency(result.materials)}`,
-      result.area ? `Job size / area: ${result.area}` : "Job size / area: not entered",
-      "",
-      "Suggested materials checklist:"
-    ];
-
-    template.forEach((item) => {
-      const query = item.makeQuery(result);
-      const lowBudget = Math.round((result.materials || result.recommendedQuote || 0) * item.budgetShare[0]);
-      const highBudget = Math.round((result.materials || result.recommendedQuote || 0) * item.budgetShare[1]);
-      lines.push(`- ${item.name}`);
-      lines.push(`  Budget reference: ${formatBudgetRange(lowBudget, highBudget)}`);
-      lines.push(`  Why to check it: ${item.rationale}`);
-      lines.push(`  Optional search phrase: ${query}`);
-    });
-
-    lines.push("");
-    lines.push(`Built on page: ${window.location.href || ""}`);
-    return lines.join("\n");
-  }
-
-  function renderProcurementSummary(result) {
-    if (!elements.procurementSummary) {
-      return;
-    }
-
-    elements.procurementSummary.textContent = buildProcurementSummary(result);
   }
 
   function buildClientSheet(result) {
@@ -1315,124 +981,6 @@ function initializeQuoteWorkbench() {
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
-  }
-
-  async function copyProcurementSummary() {
-    const result = calculateQuote();
-    const summary = buildProcurementSummary(result);
-
-    if (!navigator.clipboard?.writeText) {
-      window.alert("Copy is not supported in this browser. Please use the export option instead.");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(summary);
-      setStatus("Copied the materials summary. You can paste it into email, notes, or your job checklist.");
-    } catch (error) {
-      console.error("Failed to copy materials summary:", error);
-      window.alert("Copy failed in this browser. Please use the export option instead.");
-    }
-  }
-
-  function downloadProcurementSummary() {
-    const result = calculateQuote();
-    const summary = buildProcurementSummary(result);
-    const safeName = (result.jobName || `${result.serviceType}-materials`).toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const fileName = `${safeName || "materials-summary"}.txt`;
-    const blob = new Blob([summary], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    setStatus(`Exported materials summary as ${fileName}.`);
-  }
-
-  function renderSavedProcurements() {
-    if (!elements.savedProcurementList || !elements.savedProcurementEmpty) {
-      return;
-    }
-
-    elements.savedProcurementList.innerHTML = "";
-
-    if (!savedProcurements.length) {
-      elements.savedProcurementEmpty.hidden = false;
-      return;
-    }
-
-    elements.savedProcurementEmpty.hidden = true;
-
-    savedProcurements.forEach((entry) => {
-      const item = document.createElement("article");
-      item.className = "recent-search-item";
-      item.innerHTML = `
-        <div>
-          <strong>${entry.jobName || DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "Saved materials note"}</strong>
-          <p>${DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "Service"} · ${formatCurrency(entry.recommendedQuote)} · ${formatCompactDate(entry.savedAt)}</p>
-        </div>
-        <div class="saved-quote-actions">
-          <button type="button" class="tool-link-button" data-load-procurement="${entry.id}">Load</button>
-          <button type="button" class="tool-link-button danger" data-delete-procurement="${entry.id}">Delete</button>
-        </div>
-      `;
-      elements.savedProcurementList.appendChild(item);
-    });
-  }
-
-  function saveCurrentProcurement() {
-    const result = calculateQuote();
-    const entry = {
-      id: Date.now(),
-      savedAt: new Date().toISOString(),
-      serviceType: result.serviceType,
-      jobName: result.jobName,
-      area: result.area,
-      hours: result.hours,
-      crewSize: result.crewSize,
-      laborRate: result.laborRate,
-      materials: result.materials,
-      travelFee: result.travelFee,
-      addOns: result.addOns,
-      overheadPct: result.overheadPct,
-      profitPct: result.profitPct,
-      minimumCharge: result.minimumCharge,
-      customerScope: result.customerScope,
-      notes: result.notes,
-      recommendedQuote: result.recommendedQuote,
-      procurementSummary: buildProcurementSummary(result)
-    };
-
-    savedProcurements = [entry, ...savedProcurements].slice(0, 12);
-    saveProcurementState(savedProcurements);
-    renderSavedProcurements();
-    setStatus(
-      `Saved a materials note for ${entry.jobName || DEFAULT_TOOL_PROFILES[entry.serviceType]?.label || "this job"}. You can reload it later.`
-    );
-  }
-
-  function loadProcurementIntoForm(entry) {
-    elements.serviceType.value = entry.serviceType;
-    elements.jobName.value = entry.jobName || "";
-    elements.area.value = entry.area || "";
-    elements.hours.value = entry.hours || "";
-    elements.crewSize.value = entry.crewSize || "";
-    elements.laborRate.value = entry.laborRate || "";
-    elements.materials.value = entry.materials || "";
-    elements.travelFee.value = entry.travelFee || "";
-    elements.addOns.value = entry.addOns || "";
-    elements.overheadPct.value = entry.overheadPct || "";
-    elements.profitPct.value = entry.profitPct || "";
-    elements.minimumCharge.value = entry.minimumCharge || "";
-    elements.customerScope.value = entry.customerScope || "";
-    elements.notes.value = entry.notes || "";
-
-    renderProfileSummary(entry.serviceType);
-    updateServiceShortcuts(entry.serviceType);
-    calculateQuote();
   }
 
   async function copyQuoteSummary() {
@@ -1671,75 +1219,12 @@ function initializeQuoteWorkbench() {
     }
   });
 
-  if (elements.supplyList) {
-    elements.supplyList.addEventListener("click", (event) => {
-      const searchButton = event.target.closest("[data-supply-query]");
-
-      if (!searchButton || !elements.supplySearchInput) {
-        return;
-      }
-
-      const query = decodeURIComponent(searchButton.dataset.supplyQuery || "");
-      elements.supplySearchInput.value = query;
-
-      if (elements.supplySearchStatus) {
-        elements.supplySearchStatus.textContent =
-          "Material phrase loaded. You can save it now or use the supplier links in the cards above.";
-      }
-
-      setStatus(`Loaded material phrase for ${query}.`);
-    });
-  }
-
-  if (elements.saveSupplySearchButton) {
-    elements.saveSupplySearchButton.addEventListener("click", saveSupplySearch);
-  }
-
-  if (elements.recentSupplySearches) {
-    elements.recentSupplySearches.addEventListener("click", (event) => {
-      const loadButton = event.target.closest("[data-run-supply-search]");
-      const deleteButton = event.target.closest("[data-delete-supply-search]");
-
-      if (loadButton && elements.supplySearchInput) {
-        const targetId = Number.parseInt(loadButton.dataset.runSupplySearch, 10);
-        const savedSearch = savedSupplySearches.find((entry) => entry.id === targetId);
-
-        if (savedSearch) {
-          elements.supplySearchInput.value = savedSearch.query;
-
-          if (elements.supplySearchStatus) {
-            elements.supplySearchStatus.textContent =
-              "Saved material phrase loaded. Edit it if needed, or use the supplier links in the checklist cards.";
-          }
-
-          setStatus(`Loaded saved material phrase for ${savedSearch.query}.`);
-        }
-      }
-
-      if (deleteButton) {
-        const targetId = Number.parseInt(deleteButton.dataset.deleteSupplySearch, 10);
-        savedSupplySearches = savedSupplySearches.filter((entry) => entry.id !== targetId);
-        saveSupplySearchState(savedSupplySearches);
-        renderRecentSupplySearches();
-        setStatus("Removed one saved material phrase.");
-      }
-    });
-  }
-
   if (elements.copySummaryButton) {
     elements.copySummaryButton.addEventListener("click", copyQuoteSummary);
   }
 
   if (elements.emailSummaryButton) {
     elements.emailSummaryButton.addEventListener("click", emailQuoteSummary);
-  }
-
-  if (elements.copyProcurementButton) {
-    elements.copyProcurementButton.addEventListener("click", copyProcurementSummary);
-  }
-
-  if (elements.downloadProcurementButton) {
-    elements.downloadProcurementButton.addEventListener("click", downloadProcurementSummary);
   }
 
   if (elements.copyClientSheetButton) {
@@ -1762,10 +1247,6 @@ function initializeQuoteWorkbench() {
     elements.printClientSheetButton.addEventListener("click", printClientSheet);
   }
 
-  if (elements.saveProcurementButton) {
-    elements.saveProcurementButton.addEventListener("click", saveCurrentProcurement);
-  }
-
   if (elements.useSuggestedScopeButton) {
     elements.useSuggestedScopeButton.addEventListener("click", () => {
       const result = calculateQuote();
@@ -1777,33 +1258,6 @@ function initializeQuoteWorkbench() {
 
   if (elements.saveQuoteResultButton) {
     elements.saveQuoteResultButton.addEventListener("click", saveCurrentQuote);
-  }
-
-  if (elements.savedProcurementList) {
-    elements.savedProcurementList.addEventListener("click", (event) => {
-      const loadButton = event.target.closest("[data-load-procurement]");
-      const deleteButton = event.target.closest("[data-delete-procurement]");
-
-      if (loadButton) {
-        const targetId = Number.parseInt(loadButton.dataset.loadProcurement, 10);
-        const savedBundle = savedProcurements.find((entry) => entry.id === targetId);
-
-        if (savedBundle) {
-          loadProcurementIntoForm(savedBundle);
-          setStatus(
-            `Loaded materials note for ${savedBundle.jobName || DEFAULT_TOOL_PROFILES[savedBundle.serviceType]?.label || "this job"}.`
-          );
-        }
-      }
-
-      if (deleteButton) {
-        const targetId = Number.parseInt(deleteButton.dataset.deleteProcurement, 10);
-        savedProcurements = savedProcurements.filter((entry) => entry.id !== targetId);
-        saveProcurementState(savedProcurements);
-        renderSavedProcurements();
-        setStatus("Removed one saved materials note.");
-      }
-    });
   }
 
   elements.serviceShortcuts.forEach((button) => {
@@ -1821,8 +1275,6 @@ function initializeQuoteWorkbench() {
   });
 
   renderHistory();
-  renderRecentSupplySearches();
-  renderSavedProcurements();
   applyProfile(elements.serviceType.value || "painting");
   setStatus("Ready to price. Choose a service or tap Try example.");
 }
