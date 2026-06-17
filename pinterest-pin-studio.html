@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pinterest Pin Studio | JobQuote Kit</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5efe5;
+        --panel: #fffdf9;
+        --ink: #172033;
+        --muted: #5b6677;
+        --line: #e6dccd;
+        --accent: #c24f2f;
+        --accent-dark: #172033;
+        --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+        --radius: 24px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(255, 214, 153, 0.45), transparent 30%),
+          linear-gradient(180deg, #f7f1e7 0%, #f3ede2 100%);
+        color: var(--ink);
+      }
+
+      .page {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 32px 20px 80px;
+      }
+
+      .hero {
+        margin-bottom: 28px;
+        padding: 28px;
+        background: rgba(255, 253, 249, 0.86);
+        border: 1px solid rgba(230, 220, 205, 0.9);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+      }
+
+      .hero h1 {
+        margin: 0 0 12px;
+        font-size: 40px;
+        line-height: 1.05;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 860px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.6;
+      }
+
+      .quick-notes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin-top: 24px;
+      }
+
+      .note {
+        padding: 16px 18px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+      }
+
+      .note strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 15px;
+      }
+
+      .note span {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .pin-list {
+        display: grid;
+        gap: 22px;
+      }
+
+      .pin-card {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+        gap: 22px;
+        align-items: start;
+        padding: 22px;
+        background: rgba(255, 253, 249, 0.96);
+        border: 1px solid rgba(230, 220, 205, 0.95);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .pin-preview {
+        position: sticky;
+        top: 18px;
+      }
+
+      .pin-preview img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .pin-body h2 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      .pin-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 8px;
+      }
+
+      .pin-body p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .field {
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #fff;
+      }
+
+      .field-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .field-head strong {
+        font-size: 15px;
+      }
+
+      .copy-button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: var(--accent-dark);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .copy-button:hover {
+        background: var(--accent);
+      }
+
+      .field code,
+      .field pre,
+      .field .value {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--ink);
+      }
+
+      .field code,
+      .field .value {
+        cursor: copy;
+      }
+
+      .field code {
+        font-family: Menlo, Monaco, Consolas, monospace;
+      }
+
+      .status {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        background: #172033;
+        color: #fff;
+        font-size: 14px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.18s ease, transform 0.18s ease;
+        pointer-events: none;
+      }
+
+      .status.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 980px) {
+        .pin-card {
+          grid-template-columns: 1fr;
+        }
+
+        .pin-preview {
+          position: static;
+          max-width: 360px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <h1>Pinterest Pin Studio</h1>
+        <p>
+          Use this page as your posting panel. Each pin card keeps the image preview, destination URL, board name,
+          title, description, and alt text together so you can copy each block directly while publishing on Pinterest.
+        </p>
+        <div class="quick-notes">
+          <article class="note">
+            <strong>Step 1</strong>
+            <span>Upload the matching image from the preview card below.</span>
+          </article>
+          <article class="note">
+            <strong>Step 2</strong>
+            <span>Copy the title, description, board, and destination URL from the same card.</span>
+          </article>
+          <article class="note">
+            <strong>Step 3</strong>
+            <span>Post pins 1 to 3 first, then publish pins 4 to 6 on the next day.</span>
+          </article>
+          <article class="note">
+            <strong>Quick copy</strong>
+            <span>Click any text block itself to copy, or use the Copy All button for a full pin package.</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="pin-list">
+        <article class="pin-card">
+          <div class="pin-preview">
+            <img src="./assets/pinterest/pin-quote-workbench.svg" alt="Pinterest cover for a free quote workbench for home service businesses." />
+          </div>
+          <div class="pin-body">
+            <div class="pin-title-row">
+              <h2>Pin 1: Quote Workbench</h2>
+              <button class="copy-button" data-copy-bundle="pin-1">Copy All</button>
+            </div>
+            <p>Lead with the homepage tool first because it best explains why your site is useful beyond a normal blog post.</p>
+            <div class="field-grid">
+              <div class="field">
+                <div class="field-head">
+                  <strong>Image file</strong>
+                  <button class="copy-button" data-copy="./assets/pinterest/pin-quote-workbench.svg">Copy</button>
+                </div>
+                <div class="value">/Users/deng/Documents/Codex/2026-05-11-new-chat/assets/pinterest/pin-quote-workbench.svg</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Board</strong>
+                  <button class="copy-button" data-copy="Contractor Quote Tools">Copy</button>
+                </div>
+                <div class="value">Contractor Quote Tools</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Destination URL</strong>
+                  <button class="copy-button" data-copy="https://jobkit20.top/">Copy</button>
+                </div>
+                <code>https://jobkit20.top/</code>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Title</strong>
+                  <button class="copy-button" data-copy="Free Quote Workbench for Small Home Service Businesses">Copy</button>
+                </div>
+                <div class="value">Free Quote Workbench for Small Home Service Businesses</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Description</strong>
+                  <button class="copy-button" data-copy="This free quote workbench helps small home service businesses save service defaults, build quotes faster, and keep a local history of pricing. Useful for painting, house cleaning, pressure washing, and lawn care jobs.">Copy</button>
+                </div>
+                <div class="value">This free quote workbench helps small home service businesses save service defaults, build quotes faster, and keep a local history of pricing. Useful for painting, house cleaning, pressure washing, and lawn care jobs.</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Alt text</strong>
+                  <button class="copy-button" data-copy="Pinterest cover for a free quote workbench for home service businesses.">Copy</button>
+                </div>
+                <div class="value">Pinterest cover for a free quote workbench for home service businesses.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="pin-card">
+          <div class="pin-preview">
+            <img src="./assets/pinterest/pin-painting-estimate-template.svg" alt="Pinterest cover for a painting estimate template for contractors." />
+          </div>
+          <div class="pin-body">
+            <div class="pin-title-row">
+              <h2>Pin 2: Painting Estimate Template</h2>
+              <button class="copy-button" data-copy-bundle="pin-2">Copy All</button>
+            </div>
+            <p>Use this one to attract painting contractors who want a stronger estimate structure before sending quotes.</p>
+            <div class="field-grid">
+              <div class="field">
+                <div class="field-head">
+                  <strong>Image file</strong>
+                  <button class="copy-button" data-copy="./assets/pinterest/pin-painting-estimate-template.svg">Copy</button>
+                </div>
+                <div class="value">/Users/deng/Documents/Codex/2026-05-11-new-chat/assets/pinterest/pin-painting-estimate-template.svg</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Board</strong>
+                  <button class="copy-button" data-copy="Painting Estimate Templates">Copy</button>
+                </div>
+                <div class="value">Painting Estimate Templates</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Destination URL</strong>
+                  <button class="copy-button" data-copy="https://jobkit20.top/guides/painting-estimate-template/">Copy</button>
+                </div>
+                <code>https://jobkit20.top/guides/painting-estimate-template/</code>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Title</strong>
+                  <button class="copy-button" data-copy="Painting Estimate Template for Small Contractors">Copy</button>
+                </div>
+                <div class="value">Painting Estimate Template for Small Contractors</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Description</strong>
+                  <button class="copy-button" data-copy="Use this painting estimate template to organize prep work, scope notes, exclusions, and payment terms before sending a quote. A solid template helps protect margin and reduces confusion with clients.">Copy</button>
+                </div>
+                <div class="value">Use this painting estimate template to organize prep work, scope notes, exclusions, and payment terms before sending a quote. A solid template helps protect margin and reduces confusion with clients.</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Alt text</strong>
+                  <button class="copy-button" data-copy="Pinterest cover for a painting estimate template for contractors.">Copy</button>
+                </div>
+                <div class="value">Pinterest cover for a painting estimate template for contractors.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="pin-card">
+          <div class="pin-preview">
+            <img src="./assets/pinterest/pin-house-cleaning-price-list.svg" alt="Pinterest cover for a house cleaning price list template." />
+          </div>
+          <div class="pin-body">
+            <div class="pin-title-row">
+              <h2>Pin 3: House Cleaning Price List</h2>
+              <button class="copy-button" data-copy-bundle="pin-3">Copy All</button>
+            </div>
+            <p>Use this pin to attract cleaning businesses searching for a simple price menu they can explain to clients.</p>
+            <div class="field-grid">
+              <div class="field">
+                <div class="field-head">
+                  <strong>Image file</strong>
+                  <button class="copy-button" data-copy="./assets/pinterest/pin-house-cleaning-price-list.svg">Copy</button>
+                </div>
+                <div class="value">/Users/deng/Documents/Codex/2026-05-11-new-chat/assets/pinterest/pin-house-cleaning-price-list.svg</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Board</strong>
+                  <button class="copy-button" data-copy="Cleaning Price Lists">Copy</button>
+                </div>
+                <div class="value">Cleaning Price Lists</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Destination URL</strong>
+                  <button class="copy-button" data-copy="https://jobkit20.top/guides/house-cleaning-price-list/">Copy</button>
+                </div>
+                <code>https://jobkit20.top/guides/house-cleaning-price-list/</code>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Title</strong>
+                  <button class="copy-button" data-copy="House Cleaning Price List Template Clients Can Understand">Copy</button>
+                </div>
+                <div class="value">House Cleaning Price List Template Clients Can Understand</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Description</strong>
+                  <button class="copy-button" data-copy="This house cleaning price list template is built for recurring cleans, deep cleans, add-ons, and minimum charge logic. It is a useful starting point if you want cleaner pricing communication and fewer back-and-forth questions.">Copy</button>
+                </div>
+                <div class="value">This house cleaning price list template is built for recurring cleans, deep cleans, add-ons, and minimum charge logic. It is a useful starting point if you want cleaner pricing communication and fewer back-and-forth questions.</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Alt text</strong>
+                  <button class="copy-button" data-copy="Pinterest cover for a house cleaning price list template.">Copy</button>
+                </div>
+                <div class="value">Pinterest cover for a house cleaning price list template.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="pin-card">
+          <div class="pin-preview">
+            <img src="./assets/pinterest/pin-pressure-washing-pricing.svg" alt="Pinterest cover for a pressure washing pricing guide." />
+          </div>
+          <div class="pin-body">
+            <div class="pin-title-row">
+              <h2>Pin 4: Pressure Washing Pricing Guide</h2>
+              <button class="copy-button" data-copy-bundle="pin-4">Copy All</button>
+            </div>
+            <p>Use this to target homeowners and small operators looking for driveway, patio, siding, and small-job quote logic.</p>
+            <div class="field-grid">
+              <div class="field">
+                <div class="field-head">
+                  <strong>Image file</strong>
+                  <button class="copy-button" data-copy="./assets/pinterest/pin-pressure-washing-pricing.svg">Copy</button>
+                </div>
+                <div class="value">/Users/deng/Documents/Codex/2026-05-11-new-chat/assets/pinterest/pin-pressure-washing-pricing.svg</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Board</strong>
+                  <button class="copy-button" data-copy="Pressure Washing Pricing">Copy</button>
+                </div>
+                <div class="value">Pressure Washing Pricing</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Destination URL</strong>
+                  <button class="copy-button" data-copy="https://jobkit20.top/guides/pressure-washing-pricing/">Copy</button>
+                </div>
+                <code>https://jobkit20.top/guides/pressure-washing-pricing/</code>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Title</strong>
+                  <button class="copy-button" data-copy="Pressure Washing Pricing Guide for Driveways, Patios, and Siding">Copy</button>
+                </div>
+                <div class="value">Pressure Washing Pricing Guide for Driveways, Patios, and Siding</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Description</strong>
+                  <button class="copy-button" data-copy="This pressure washing pricing guide breaks quoting into minimum charges, surface-specific pricing, and complexity adjustments. It is designed for small operators who want a more dependable pricing system.">Copy</button>
+                </div>
+                <div class="value">This pressure washing pricing guide breaks quoting into minimum charges, surface-specific pricing, and complexity adjustments. It is designed for small operators who want a more dependable pricing system.</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Alt text</strong>
+                  <button class="copy-button" data-copy="Pinterest cover for a pressure washing pricing guide.">Copy</button>
+                </div>
+                <div class="value">Pinterest cover for a pressure washing pricing guide.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="pin-card">
+          <div class="pin-preview">
+            <img src="./assets/pinterest/pin-lawn-care-invoice-template.svg" alt="Pinterest cover for a lawn care invoice template." />
+          </div>
+          <div class="pin-body">
+            <div class="pin-title-row">
+              <h2>Pin 5: Lawn Care Invoice Template</h2>
+              <button class="copy-button" data-copy-bundle="pin-5">Copy All</button>
+            </div>
+            <p>Use this one for service operators who need a clearer invoice for recurring route work and one-time extras.</p>
+            <div class="field-grid">
+              <div class="field">
+                <div class="field-head">
+                  <strong>Image file</strong>
+                  <button class="copy-button" data-copy="./assets/pinterest/pin-lawn-care-invoice-template.svg">Copy</button>
+                </div>
+                <div class="value">/Users/deng/Documents/Codex/2026-05-11-new-chat/assets/pinterest/pin-lawn-care-invoice-template.svg</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Board</strong>
+                  <button class="copy-button" data-copy="Lawn Care Templates">Copy</button>
+                </div>
+                <div class="value">Lawn Care Templates</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Destination URL</strong>
+                  <button class="copy-button" data-copy="https://jobkit20.top/guides/lawn-care-invoice-template/">Copy</button>
+                </div>
+                <code>https://jobkit20.top/guides/lawn-care-invoice-template/</code>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Title</strong>
+                  <button class="copy-button" data-copy="Lawn Care Invoice Template for Recurring and One-Time Jobs">Copy</button>
+                </div>
+                <div class="value">Lawn Care Invoice Template for Recurring and One-Time Jobs</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Description</strong>
+                  <button class="copy-button" data-copy="Use this lawn care invoice template to bill mowing visits, edging, trimming, cleanup work, mulch, and one-time extras more clearly. A cleaner invoice helps clients understand what happened on each visit.">Copy</button>
+                </div>
+                <div class="value">Use this lawn care invoice template to bill mowing visits, edging, trimming, cleanup work, mulch, and one-time extras more clearly. A cleaner invoice helps clients understand what happened on each visit.</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Alt text</strong>
+                  <button class="copy-button" data-copy="Pinterest cover for a lawn care invoice template.">Copy</button>
+                </div>
+                <div class="value">Pinterest cover for a lawn care invoice template.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="pin-card">
+          <div class="pin-preview">
+            <img src="./assets/pinterest/pin-guides-hub.svg" alt="Pinterest cover for contractor templates and pricing guides." />
+          </div>
+          <div class="pin-body">
+            <div class="pin-title-row">
+              <h2>Pin 6: Guides Hub</h2>
+              <button class="copy-button" data-copy-bundle="pin-6">Copy All</button>
+            </div>
+            <p>Use the resource hub pin as a broader entry point for users who want to browse multiple templates and pricing guides.</p>
+            <div class="field-grid">
+              <div class="field">
+                <div class="field-head">
+                  <strong>Image file</strong>
+                  <button class="copy-button" data-copy="./assets/pinterest/pin-guides-hub.svg">Copy</button>
+                </div>
+                <div class="value">/Users/deng/Documents/Codex/2026-05-11-new-chat/assets/pinterest/pin-guides-hub.svg</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Board</strong>
+                  <button class="copy-button" data-copy="Contractor Templates and Guides">Copy</button>
+                </div>
+                <div class="value">Contractor Templates and Guides</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Destination URL</strong>
+                  <button class="copy-button" data-copy="https://jobkit20.top/guides/">Copy</button>
+                </div>
+                <code>https://jobkit20.top/guides/</code>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Title</strong>
+                  <button class="copy-button" data-copy="Free Contractor Templates, Price Lists, and Quote Guides">Copy</button>
+                </div>
+                <div class="value">Free Contractor Templates, Price Lists, and Quote Guides</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Description</strong>
+                  <button class="copy-button" data-copy="Browse a growing hub of contractor templates, pricing guides, invoice examples, and quoting resources for painting, cleaning, pressure washing, lawn care, and related home service businesses.">Copy</button>
+                </div>
+                <div class="value">Browse a growing hub of contractor templates, pricing guides, invoice examples, and quoting resources for painting, cleaning, pressure washing, lawn care, and related home service businesses.</div>
+              </div>
+              <div class="field">
+                <div class="field-head">
+                  <strong>Alt text</strong>
+                  <button class="copy-button" data-copy="Pinterest cover for contractor templates and pricing guides.">Copy</button>
+                </div>
+                <div class="value">Pinterest cover for contractor templates and pricing guides.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div class="status" id="copy-status" aria-live="polite">Copied</div>
+
+    <script>
+      const status = document.getElementById("copy-status");
+      const pinBundles = {
+        "pin-1": `Board: Contractor Quote Tools
+Destination URL: https://jobkit20.top/
+Title: Free Quote Workbench for Small Home Service Businesses
+Description: This free quote workbench helps small home service businesses save service defaults, build quotes faster, and keep a local history of pricing. Useful for painting, house cleaning, pressure washing, and lawn care jobs.
+Alt text: Pinterest cover for a free quote workbench for home service businesses.`,
+        "pin-2": `Board: Painting Estimate Templates
+Destination URL: https://jobkit20.top/guides/painting-estimate-template/
+Title: Painting Estimate Template for Small Contractors
+Description: Use this painting estimate template to organize prep work, scope notes, exclusions, and payment terms before sending a quote. A solid template helps protect margin and reduces confusion with clients.
+Alt text: Pinterest cover for a painting estimate template for contractors.`,
+        "pin-3": `Board: Cleaning Price Lists
+Destination URL: https://jobkit20.top/guides/house-cleaning-price-list/
+Title: House Cleaning Price List Template Clients Can Understand
+Description: This house cleaning price list template is built for recurring cleans, deep cleans, add-ons, and minimum charge logic. It is a useful starting point if you want cleaner pricing communication and fewer back-and-forth questions.
+Alt text: Pinterest cover for a house cleaning price list template.`,
+        "pin-4": `Board: Pressure Washing Pricing
+Destination URL: https://jobkit20.top/guides/pressure-washing-pricing/
+Title: Pressure Washing Pricing Guide for Driveways, Patios, and Siding
+Description: This pressure washing pricing guide breaks quoting into minimum charges, surface-specific pricing, and complexity adjustments. It is designed for small operators who want a more dependable pricing system.
+Alt text: Pinterest cover for a pressure washing pricing guide.`,
+        "pin-5": `Board: Lawn Care Templates
+Destination URL: https://jobkit20.top/guides/lawn-care-invoice-template/
+Title: Lawn Care Invoice Template for Recurring and One-Time Jobs
+Description: Use this lawn care invoice template to bill mowing visits, edging, trimming, cleanup work, mulch, and one-time extras more clearly. A cleaner invoice helps clients understand what happened on each visit.
+Alt text: Pinterest cover for a lawn care invoice template.`,
+        "pin-6": `Board: Contractor Templates and Guides
+Destination URL: https://jobkit20.top/guides/
+Title: Free Contractor Templates, Price Lists, and Quote Guides
+Description: Browse a growing hub of contractor templates, pricing guides, invoice examples, and quoting resources for painting, cleaning, pressure washing, lawn care, and related home service businesses.
+Alt text: Pinterest cover for contractor templates and pricing guides.`
+      };
+
+      async function copyText(value) {
+        try {
+          await navigator.clipboard.writeText(value);
+          status.textContent = "Copied";
+          status.classList.add("show");
+          window.setTimeout(() => status.classList.remove("show"), 1400);
+        } catch (error) {
+          window.alert("Copy failed in this browser. Please copy the text manually.");
+        }
+      }
+
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", () => copyText(button.dataset.copy || ""));
+      });
+
+      document.querySelectorAll("[data-copy-bundle]").forEach((button) => {
+        button.addEventListener("click", () => copyText(pinBundles[button.dataset.copyBundle] || ""));
+      });
+
+      document.querySelectorAll(".field code, .field .value").forEach((block) => {
+        block.addEventListener("click", () => copyText(block.textContent.trim()));
+      });
+    </script>
+  </body>
+</html>

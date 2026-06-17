@@ -1,0 +1,30 @@
+name: Update ads.txt
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-ads-txt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download Ezoic managed ads.txt
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://srv.adstxtmanager.com/19390/jobkit20.top" -o ads.txt.new
+          test -s ads.txt.new
+          grep -q "," ads.txt.new
+          mv ads.txt.new ads.txt
+
+      - name: Commit ads.txt update
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update ads.txt from Ezoic AdstxtManager"
+          file_pattern: ads.txt
